@@ -123,4 +123,31 @@ public class ProcessInstController {
     public Boolean deleteProcessInst(@RequestParam String procInstId) {
         return processInstService.deleteProcessInst(procInstId);
     }
+
+    @PostMapping("suspend")
+    public Boolean suspendProcessInst(@RequestParam String procInstId) {
+        return processInstService.suspendProcessInst(procInstId);
+    }
+
+    /**
+     * 流程定义激活
+     *
+     * @param procInstId 流程定义id
+     * @return {@link Boolean}
+     */
+    @PostMapping("activate")
+    public Boolean activateProcessInst(@RequestParam String procInstId) {
+        return processInstService.activateProcessInst(procInstId);
+    }
+
+    /**
+     * 流程定义复制
+     *
+     * @param originalInstanceId 要复制的原流程实例ID
+     * @return {@link Boolean} 新创建的流程实例ID
+     */
+    @PostMapping("copy")
+    public String copyProcessInst(@RequestParam String originalInstanceId,@RequestParam String processDefinitionKey) {
+        return processInstService.copyProcessInst(originalInstanceId,processDefinitionKey);
+    }
 }

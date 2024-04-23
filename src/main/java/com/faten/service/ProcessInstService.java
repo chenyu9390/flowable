@@ -19,10 +19,12 @@ import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.history.NativeHistoricActivityInstanceQuery;
 import org.flowable.engine.impl.persistence.entity.ActivityInstanceEntity;
+import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
 import org.flowable.engine.impl.persistence.entity.HistoricActivityInstanceEntity;
 import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
+import org.flowable.entitylink.api.history.HistoricEntityLink;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.image.impl.DefaultProcessDiagramGenerator;
 import org.flowable.task.api.Task;
@@ -318,6 +320,44 @@ public class ProcessInstService {
         return true;
     }
 
+    /**
+     * 挂起
+     *
+     * @param procInstId proc-inst-id
+     * @return {@link Boolean}
+     */
+    public Boolean suspendProcessInst(String procInstId) {
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(procInstId).singleResult();
+        if(!processInstance.isSuspended()){
+            runtimeService.suspendProcessInstanceById(procInstId);
+        }
+        return Boolean.TRUE;
+    }
+
+    public Boolean activateProcessInst(String procInstId){
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(procInstId).singleResult();
+        if(processInstance.isSuspended()){
+            runtimeService.activateProcessInstanceById(procInstId);
+        }
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 复制指定流程实例，并将其流程变量复制到新实例中。
+     *
+     * @return 新创建的流程实例ID
+     */
+    public String copyProcessInst(String originalInstanceId,String processDefinitionKey){
+        // 1. 创建新流程实例
+        String newProcessInstanceId = runtimeService.startProcessInstanceById(processDefinitionKey).getId();
+        // 2. 复制流程变量
+        ProcessInstance originalInstance = runtimeService.createProcessInstanceQuery().processInstanceId(originalInstanceId).singleResult();
+        Map<String, Object> variables = originalInstance.getProcessVariables();
+        for (Map.Entry<String, Object> entry : variables.entrySet()) {
+            runtimeService.setVariable(newProcessInstanceId, entry.getKey(), entry.getValue());
+        }
+        return newProcessInstanceId;
+    }
     public void deleteActivityAndTask(TaskEntity taskEntity,List<List<String>> activityId){
         String tableName = managementService.getTableName(ActivityInstanceEntity.class);
         StrBuilder builder = new StrBuilder();
